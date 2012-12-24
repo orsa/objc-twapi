@@ -8,8 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		646000F016890ED0000EEACB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 646000EF16890ED0000EEACB /* Foundation.framework */; };
-		646000F516890ED0000EEACB /* objc_twapi.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 646000F416890ED0000EEACB /* objc_twapi.h */; };
-		646000F716890ED0000EEACB /* objc_twapi.m in Sources */ = {isa = PBXBuildFile; fileRef = 646000F616890ED0000EEACB /* objc_twapi.m */; };
+		646000FF16890F2D000EEACB /* TWapi.m in Sources */ = {isa = PBXBuildFile; fileRef = 646000FE16890F2D000EEACB /* TWapi.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -19,7 +18,6 @@
 			dstPath = "include/${PRODUCT_NAME}";
 			dstSubfolderSpec = 16;
 			files = (
-				646000F516890ED0000EEACB /* objc_twapi.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -29,8 +27,8 @@
 		646000EC16890ECF000EEACB /* libobjc-twapi.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libobjc-twapi.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		646000EF16890ED0000EEACB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		646000F316890ED0000EEACB /* objc-twapi-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "objc-twapi-Prefix.pch"; sourceTree = "<group>"; };
-		646000F416890ED0000EEACB /* objc_twapi.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = objc_twapi.h; sourceTree = "<group>"; };
-		646000F616890ED0000EEACB /* objc_twapi.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = objc_twapi.m; sourceTree = "<group>"; };
+		646000FD16890F2D000EEACB /* TWapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TWapi.h; sourceTree = "<group>"; };
+		646000FE16890F2D000EEACB /* TWapi.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TWapi.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,8 +71,8 @@
 		646000F116890ED0000EEACB /* objc-twapi */ = {
 			isa = PBXGroup;
 			children = (
-				646000F416890ED0000EEACB /* objc_twapi.h */,
-				646000F616890ED0000EEACB /* objc_twapi.m */,
+				646000FD16890F2D000EEACB /* TWapi.h */,
+				646000FE16890F2D000EEACB /* TWapi.m */,
 				646000F216890ED0000EEACB /* Supporting Files */,
 			);
 			path = "objc-twapi";
@@ -139,7 +137,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				646000F716890ED0000EEACB /* objc_twapi.m in Sources */,
+				646000FF16890F2D000EEACB /* TWapi.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
