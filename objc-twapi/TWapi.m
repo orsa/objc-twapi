@@ -12,14 +12,14 @@
 
 +(NSDictionary *)TWRequest:(NSDictionary *)params
 {
-    NSString *URLPath = @"http://translatewiki.net/w/api.php";
+    NSString *URLPath = @"https://translatewiki.net/w/api.php";
     NSString *URLComplete = @"";
     NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
     requestParams = [requestParams initWithDictionary:params];
     [requestParams setObject:@"json" forKey:@"format"];
     URLComplete = [URLComplete stringByAppendingString:URLPath];
     URLComplete = [URLComplete stringByAppendingString:@"?"];
-   
+    
     for( NSString *aKey in requestParams )
     {
         //TODO: add encoding check
@@ -29,12 +29,12 @@
         URLComplete = [URLComplete stringByAppendingString:@"&"];
     };
     URLComplete = [URLComplete stringByPaddingToLength:[URLComplete length]-1 withString:0 startingAtIndex:0];
-
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:URLComplete]];
-
-   [request setHTTPMethod:@"POST"];
     
- //send request
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:URLComplete]];
+    
+    [request setHTTPMethod:@"POST"];
+    
+    //send request
     NSError *error = [[NSError alloc] init];
     NSHTTPURLResponse *responseCode = nil;
     NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&responseCode error:&error];
@@ -60,12 +60,28 @@
     return [self TWRequest:requestParams];
 }
 
-+(NSDictionary *)TWLoginRequest:(NSDictionary *)params
++(NSString *)TWLoginRequestForUser:(NSString*)username WithPassword:(NSString*) passw
 {
-    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
-    requestParams = [requestParams initWithDictionary:params];
+    NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] init];
+    [requestParams setObject:username forKey:@"lgname"];
+    [requestParams setObject:passw forKey:@"lgpassword"];
     [requestParams setObject:@"login" forKey:@"action"];
-    return [self TWRequest:requestParams];
+    NSDictionary * responseData;
+    responseData =  [TWapi TWRequest:requestParams];
+    
+    id lgid = [responseData objectForKey:@"login"];
+    
+    NSString *result = [[NSString alloc] initWithFormat:@"%@",[lgid valueForKey:@"result"]];
+    
+    if ([result isEqualToString:@"NeedToken"])
+    {
+        [requestParams setObject:[lgid valueForKey:@"token"] forKey:@"lgtoken"];
+        responseData =  [TWapi TWRequest:requestParams];
+        lgid = [responseData objectForKey:@"login"];
+        result = [lgid valueForKey:@"result"];
+    }
+    
+    return (result);
 }
 
 +(NSDictionary *)TWLogoutRequest:(NSDictionary *)params

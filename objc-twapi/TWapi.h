@@ -12,7 +12,7 @@
 
 +(NSDictionary *)TWRequest:(NSDictionary *)params;
 +(NSDictionary *)TWQueryRequest:(NSDictionary *)params;
-+(NSDictionary *)TWLoginRequest:(NSDictionary *)params;
++(NSString *)TWLoginRequestForUser:(NSString*)username WithPassword:(NSString*) passw;
 +(NSDictionary *)TWLogoutRequest:(NSDictionary *)params;
 +(NSDictionary *)TWEditRequest:(NSDictionary *)params;
 @end
