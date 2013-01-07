@@ -13,6 +13,7 @@
 +(NSDictionary *)TWRequest:(NSDictionary *)params;
 +(NSDictionary *)TWQueryRequest:(NSDictionary *)params;
 +(NSString *)TWLoginRequestForUser:(NSString*)username WithPassword:(NSString*) passw;
-+(NSDictionary *)TWLogoutRequest:(NSDictionary *)params;
++(NSDictionary *)TWLogoutRequest;
 +(NSDictionary *)TWEditRequest:(NSDictionary *)params;
++(NSDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit ByUserId:(NSString*) userId;
 @end

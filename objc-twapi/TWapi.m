@@ -90,10 +90,10 @@
     return (result); //return the login result [Success, NotExists, WrongPass...]
 }
 
-+(NSDictionary *)TWLogoutRequest:(NSDictionary *)params
++(NSDictionary *)TWLogoutRequest
 {
     NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
-    requestParams = [requestParams initWithDictionary:params];
+    requestParams = [requestParams initWithObjectsAndKeys:nil];
     [requestParams setObject:@"logout" forKey:@"action"];
     return [self TWRequest:requestParams];
 }
@@ -104,6 +104,19 @@
     requestParams = [requestParams initWithDictionary:params];
     [requestParams setObject:@"edit" forKey:@"action"];
     return [self TWRequest:requestParams];
+}
+
++(NSDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit ByUserId:(NSString*) userId
+{
+    NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
+    [requestParams setObject:@"messagecollection" forKey:@"list"];
+    [requestParams setObject:proj forKey:@"mcgroup"];
+    [requestParams setObject:lang forKey:@"mclanguage"];
+    [requestParams setObject:[NSString stringWithFormat:@"%d",limit] forKey:@"mclimit"];
+    [requestParams setObject:@"definition|translation|revision" forKey:@"mcprop"];
+    [requestParams setObject:[NSString stringWithFormat:@"!last-translator:%@|!reviewer:%@|!ignored|translated",userId, userId] forKey:@"mcfilter"];
+    
+    return [self TWQueryRequest:requestParams];
 }
 
 //TODO add some more wrapper functionalities...
