@@ -30,11 +30,12 @@
         URLComplete = [URLComplete stringByAppendingString:[[requestParams valueForKey:aKey] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
         URLComplete = [URLComplete stringByAppendingString:@"&"];
     };
+    
     URLComplete = [URLComplete stringByPaddingToLength:[URLComplete length]-1 withString:0 startingAtIndex:0]; //ommit last '&'
     
-    NSString * escapedURLComplete = [URLComplete stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding]; //url encoding
+    //NSString * escapedURLComplete = [URLComplete stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding]; //url encoding
     
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:escapedURLComplete]];
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString: URLComplete]];
     
     [request setHTTPMethod:@"POST"];
     
@@ -44,7 +45,7 @@
     NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&responseCode error:&error];
     
     if([responseCode statusCode] != 200){
-        NSLog(@"Error getting %@, HTTP status code %i", escapedURLComplete, [responseCode statusCode]);
+        NSLog(@"Error getting %@, HTTP status code %i", URLComplete, [responseCode statusCode]);
         return 0;
     }
     
@@ -106,13 +107,14 @@
     return [self TWRequest:requestParams];
 }
 
-+(NSDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit ByUserId:(NSString*) userId
++(NSDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset ByUserId:(NSString *)userId
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
     [requestParams setObject:@"messagecollection" forKey:@"list"];
     [requestParams setObject:proj forKey:@"mcgroup"];
     [requestParams setObject:lang forKey:@"mclanguage"];
     [requestParams setObject:[NSString stringWithFormat:@"%d",limit] forKey:@"mclimit"];
+    [requestParams setObject:[NSString stringWithFormat:@"%d",offset] forKey:@"mcoffset"];
     [requestParams setObject:@"definition|translation|revision" forKey:@"mcprop"];
     [requestParams setObject:[NSString stringWithFormat:@"!last-translator:%@|!reviewer:%@|!ignored|translated",userId, userId] forKey:@"mcfilter"];
     

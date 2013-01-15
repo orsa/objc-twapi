@@ -15,5 +15,5 @@
 +(NSString *)TWLoginRequestForUser:(NSString*)username WithPassword:(NSString*) passw;
 +(NSDictionary *)TWLogoutRequest;
 +(NSDictionary *)TWEditRequest:(NSDictionary *)params;
-+(NSDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit ByUserId:(NSString*) userId;
++(NSDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset ByUserId:(NSString*) userId;
 @end
