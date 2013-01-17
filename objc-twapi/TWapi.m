@@ -12,7 +12,7 @@
 
 @implementation TWapi
 
-+(NSDictionary *)TWRequest:(NSDictionary *)params
++(NSMutableDictionary *)TWRequest:(NSDictionary *)params
 {
     NSString *URLPath = SERV_PATH;
     NSString *URLComplete = @"";
@@ -51,13 +51,13 @@
     
     //parse JSON response
     NSError *jsonParsingError = nil;
-    NSDictionary *Data = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonParsingError];
+    NSMutableDictionary *Data = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonParsingError];
     
     return Data;
 }
 
 
-+(NSDictionary *)TWQueryRequest:(NSDictionary *)params //general query - additional wrap is needed
++(NSMutableDictionary *)TWQueryRequest:(NSDictionary *)params //general query - additional wrap is needed
 {
     NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
     requestParams = [requestParams initWithDictionary:params];
@@ -107,7 +107,7 @@
     return [self TWRequest:requestParams];
 }
 
-+(NSDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset ByUserId:(NSString *)userId
++(NSMutableDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset ByUserId:(NSString *)userId
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
     [requestParams setObject:@"messagecollection" forKey:@"list"];
@@ -119,6 +119,33 @@
     [requestParams setObject:[NSString stringWithFormat:@"!last-translator:%@|!reviewer:%@|!ignored|translated",userId, userId] forKey:@"mcfilter"];
     
     return [self TWQueryRequest:requestParams];
+}
+
+
++ (bool)TWTranslationReviewRequest:(NSString *)revision  //accept action
+{
+    //request for a token
+    NSMutableDictionary *tokRequestParams = [NSMutableDictionary alloc];
+    tokRequestParams = [tokRequestParams initWithObjectsAndKeys:nil];
+    [tokRequestParams setObject:@"tokens" forKey:@"action"];
+    [tokRequestParams setObject:@"translationreview" forKey:@"type"];
+    NSDictionary * responseData;
+    responseData =  [TWapi TWRequest:tokRequestParams];
+    
+    //here should be verification
+    
+    NSString * token = [[NSString alloc] initWithFormat:@"%@",[[responseData objectForKey:@"tokens"] valueForKey:@"translationreviewtoken"]]; //get the token string itself
+   
+    //request for the review itself
+    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
+    requestParams = [requestParams initWithObjectsAndKeys:nil];
+    [requestParams setObject:@"translationreview" forKey:@"action"];
+    [requestParams setObject:@"revision" forKey:revision];
+    [requestParams setObject:@"token" forKey:token];
+    
+    responseData =  [TWapi TWRequest:requestParams];
+    
+    return true;
 }
 
 //TODO add some more wrapper functionalities...

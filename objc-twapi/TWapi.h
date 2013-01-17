@@ -10,10 +10,11 @@
 
 @interface TWapi : NSObject
 
-+(NSDictionary *)TWRequest:(NSDictionary *)params;
-+(NSDictionary *)TWQueryRequest:(NSDictionary *)params;
++(NSMutableDictionary *)TWRequest:(NSDictionary *)params;
++(NSMutableDictionary *)TWQueryRequest:(NSDictionary *)params;
 +(NSString *)TWLoginRequestForUser:(NSString*)username WithPassword:(NSString*) passw;
 +(NSDictionary *)TWLogoutRequest;
 +(NSDictionary *)TWEditRequest:(NSDictionary *)params;
-+(NSDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset ByUserId:(NSString*) userId;
++(NSMutableDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset ByUserId:(NSString*) userId;
++ (bool)TWTranslationReviewRequest:(NSString *)revision;
 @end
