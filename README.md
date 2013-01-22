@@ -1,28 +1,33 @@
 objc-twapi
 ==========
 
-objective-C translatewiki API library
+objective-C translatewiki API wrapper library
 currently at a very early stage of development, but it doe's something... 
 
 sorry for the lack of documentation at this stage.
-KNOWN BUG: no parameter encooding support (such as: "or sa" --> "or%20sa").
+A listing of the API wrapper methods and their contract/decription will be added here soon.
 
-client code examles:
+please give us your feedback.
+
+------------------
+Usage examples :
+
 
 // 1) login example
    
-    NSMutableDictionary *parameters = [[NSMutableDictionary alloc] init];
-    NSDictionary * responseData;
+    NSString *nameString = self.userName;  //username parameter
+    NSString *passwString = self.password; //password parameter
 
-    [parameters setObject:@"orsa" forKey:@"lgname"];          //add user-name field to prameters
-    [parameters setObject:@"1234" forKey:@"lgpassword"];      //add password field to parameters
-    responseData =  [TWapi TWLoginRequest:parameters];        //get the result parsed from a JSON response
-
-// rerefer to: https://translatewiki.net/wiki/Special:ApiSandbox#action=login&format=json&lgname=orsa&lgpassword=1234
+    self.ResultLabel.text = [TWapi TWLoginRequestForUser:nameString WithPassword:passwString]; //login via API wrapper
 
 
 // 2) query example
+    
+    NSMutableDictionary *parameters = [[NSMutableDictionary alloc] init];
     [parameters setObject:@"users" forKey:@"list"];
-    [parameters setObject:@"blockinfo%7Cgroups%7Cimplicitgroups%7Crights%7Ceditcount%7Cregistration%7Cemailable%7Cgender" forKey:@"usprop"];
+    [parameters setObject:@"blockinfo|groups|implicitgroups|rights|editcount|registration|emailable|gender" forKey:@"usprop"];
     [parameters setObject:@"orsa" forKey:@"ususers"];
-    responseData = [TWapi TWQueryRequest:parameters];
+    // we prepared a Dictionary with "list","usprop" and "ususers" parameters
+    responseData = [TWapi TWQueryRequest:parameters]; //call a query request via API wrapper
+
+// for a detailed API specification rerefer to: https://translatewiki.net/w/api.php
