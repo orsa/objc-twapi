@@ -17,4 +17,5 @@
 +(NSDictionary *)TWEditRequest:(NSDictionary *)params;
 +(NSMutableDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset ByUserId:(NSString*) userId;
 + (bool)TWTranslationReviewRequest:(NSString *)revision;
++ (NSString*) TWUserIdRequestOfUserName:(NSString*)userName;
 @end

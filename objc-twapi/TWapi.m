@@ -148,6 +148,25 @@
     return true;
 }
 
++ (NSString*) TWUserIdRequestOfUserName:(NSString*)userName
+{
+    NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
+    [requestParams setObject:@"users" forKey:@"list"];
+    [requestParams setObject:userName forKey:@"ususers"];
+   
+    NSDictionary* result = [self TWQueryRequest:requestParams];
+    NSString* resUser;
+    if (result)
+    {
+        
+        resUser = [[NSString alloc] initWithString:[[[[result objectForKey:@"query"] objectForKey:@"users"] objectAtIndex:0] objectForKey:@"name"]];
+        if ([[resUser lowercaseString] isEqualToString:[userName lowercaseString]])
+            return [[result objectForKey:@"users"] objectForKey:@"userid"];
+        
+    }
+    return nil;
+}
+
 //TODO add some more wrapper functionalities...
 
 @end
