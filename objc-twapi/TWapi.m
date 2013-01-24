@@ -11,48 +11,86 @@
 #define SERV_PATH @"https://translatewiki.net/w/api.php"
 
 @implementation TWapi
+/*
++(NSMutableDictionary *)TWRequest:(NSDictionary *)params
+{
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString: SERV_PATH]];
+    
+    [request setHTTPMethod:@"POST"];
+    [request    addValue:@"json" forHTTPHeaderField:@"format"];
+    
+    //build URL line with query parameters - taken from requestParams dictionary.
+    for( NSString *aKey in params )
+    {
+        [request addValue:[[params valueForKey:aKey] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] forHTTPHeaderField:aKey];
+
+    };
+    NSURLConnection * connection = [[NSURLConnection alloc] initWithRequest:request
+                                                                   delegate:self];
+    
+    NSLog(@"%@",[request allHTTPHeaderFields]);
+    //send request
+    NSError *error = [[NSError alloc] init];
+    NSHTTPURLResponse *responseCode = nil;
+    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&responseCode error:&error];
+     
+    if([responseCode statusCode] != 200){
+        NSLog(@"Error getting %@, HTTP status code %i", SERV_PATH, [responseCode statusCode]);
+        return 0;
+    }
+    //parse JSON response
+    NSError *jsonParsingError = nil;
+    NSMutableDictionary *Data = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonParsingError];
+    NSLog(@"%@",Data);
+    return Data;
+}
+ */
 
 +(NSMutableDictionary *)TWRequest:(NSDictionary *)params
 {
-    NSString *URLPath = SERV_PATH;
-    NSString *URLComplete = @"";
+    NSString *post = @"";
     NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
     requestParams = [requestParams initWithDictionary:params];
     [requestParams setObject:@"json" forKey:@"format"];
-    URLComplete = [URLComplete stringByAppendingString:URLPath];
-    URLComplete = [URLComplete stringByAppendingString:@"?"];
     
     //build URL line with query parameters - taken from requestParams dictionary.
     for( NSString *aKey in requestParams )
     {
-        URLComplete = [URLComplete stringByAppendingString:aKey];
-        URLComplete = [URLComplete stringByAppendingString:@"="];
-        URLComplete = [URLComplete stringByAppendingString:[[requestParams valueForKey:aKey] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-        URLComplete = [URLComplete stringByAppendingString:@"&"];
+        post = [post stringByAppendingString:aKey];
+        post = [post stringByAppendingString:@"="];
+        post = [post stringByAppendingString:[requestParams valueForKey:aKey]];
+        post = [post stringByAppendingString:@"&"];
     };
     
-    URLComplete = [URLComplete stringByPaddingToLength:[URLComplete length]-1 withString:0 startingAtIndex:0]; //ommit last '&'
+    post = [post stringByPaddingToLength:[post length]-1 withString:0 startingAtIndex:0]; //ommit last '&'
+    NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
     
-    //NSString * escapedURLComplete = [URLComplete stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding]; //url encoding
-    
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString: URLComplete]];
-    
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString: SERV_PATH]];
+    [request setValue:[NSString stringWithFormat:@"%d", [postData length]] forHTTPHeaderField:@"Content-Length"];
+    [request setHTTPBody:postData];
     [request setHTTPMethod:@"POST"];
+    [request setTimeoutInterval: 15];
     
+    NSLog(@"%@\n",request);
+    NSLog(@"%@\n",[request allHTTPHeaderFields]);
     //send request
     NSError *error = [[NSError alloc] init];
     NSHTTPURLResponse *responseCode = nil;
     NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&responseCode error:&error];
     
     if([responseCode statusCode] != 200){
-        NSLog(@"Error getting %@, HTTP status code %i", URLComplete, [responseCode statusCode]);
+        NSLog(@"Error getting %@, HTTP status code %i", post, [responseCode statusCode]);
         return 0;
     }
-    
     //parse JSON response
     NSError *jsonParsingError = nil;
     NSMutableDictionary *Data = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonParsingError];
+    NSLog(@"%@\n",Data);
+    NSLog(@"%@\n",[responseCode allHeaderFields]);
     
+    [[[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        NSLog(@"%@", obj);
+    }];
     return Data;
 }
 
@@ -133,18 +171,17 @@
     responseData =  [TWapi TWRequest:tokRequestParams];
     
     //here should be verification
-    
-    NSString * token = [[NSString alloc] initWithFormat:@"%@",[[responseData objectForKey:@"tokens"] valueForKey:@"translationreviewtoken"]]; //get the token string itself
-   
+    NSMutableString * token = [[NSMutableString alloc] initWithFormat:@"%@",[[responseData objectForKey:@"tokens"] valueForKey:@"translationreviewtoken"]]; //get the token string itself
+    //[token appendString:(@"\\")];
+   // [token substringToIndex:(token.)]
     //request for the review itself
     NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
     requestParams = [requestParams initWithObjectsAndKeys:nil];
     [requestParams setObject:@"translationreview" forKey:@"action"];
-    [requestParams setObject:@"revision" forKey:revision];
-    [requestParams setObject:@"token" forKey:token];
+    [requestParams setObject:revision forKey:@"revision"];
+    [requestParams setObject:token forKey:@"token"];
     
     responseData =  [TWapi TWRequest:requestParams];
-    
     return true;
 }
 
