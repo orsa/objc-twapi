@@ -7,15 +7,21 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "TWUser.h"
 
 @interface TWapi : NSObject
 
-+(NSMutableDictionary *)TWRequest:(NSDictionary *)params;
-+(NSMutableDictionary *)TWQueryRequest:(NSDictionary *)params;
-+(NSString *)TWLoginRequestForUser:(NSString*)username WithPassword:(NSString*) passw;
-+(NSDictionary *)TWLogoutRequest;
-+(NSDictionary *)TWEditRequest:(NSDictionary *)params;
-+(NSMutableDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset ByUserId:(NSString*) userId;
-+ (bool)TWTranslationReviewRequest:(NSString *)revision;
-+ (NSString*) TWUserIdRequestOfUserName:(NSString*)userName;
+-(id) initForUser:(TWUser*) linkedUser;
+-(NSMutableDictionary *)TWRequest:(NSDictionary *)params;
+-(NSMutableDictionary *)TWQueryRequest:(NSDictionary *)params;
+-(NSString *)TWLoginRequestWithPassword:(NSString*) passw;
+-(NSDictionary *)TWLogoutRequest;
+-(NSDictionary *)TWEditRequest:(NSDictionary *)params;
+-(NSMutableDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset;
+- (bool)TWTranslationReviewRequest:(NSString *)revision;
+- (NSString*) TWUserIdRequestOfUserName:(NSString*)userName;
+
+
+//@property(nonatomic, copy)NSString* cookie;
+@property(nonatomic, copy)TWUser* user;
 @end
