@@ -9,6 +9,7 @@
 #import "TWapi.h"
 
 #define SERV_PATH @"https://translatewiki.net/w/api.php"
+#define HOST @"https://translatewiki.net"
 
 @implementation TWapi
 
@@ -22,40 +23,6 @@
     }
     return nil;
 }
-/*
-+(NSMutableDictionary *)TWRequest:(NSDictionary *)params
-{
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString: SERV_PATH]];
-    
-    [request setHTTPMethod:@"POST"];
-    [request    addValue:@"json" forHTTPHeaderField:@"format"];
-    
-    //build URL line with query parameters - taken from requestParams dictionary.
-    for( NSString *aKey in params )
-    {
-        [request addValue:[[params valueForKey:aKey] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] forHTTPHeaderField:aKey];
-
-    };
-    NSURLConnection * connection = [[NSURLConnection alloc] initWithRequest:request
-                                                                   delegate:self];
-    
-    NSLog(@"%@",[request allHTTPHeaderFields]);
-    //send request
-    NSError *error = [[NSError alloc] init];
-    NSHTTPURLResponse *responseCode = nil;
-    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&responseCode error:&error];
-     
-    if([responseCode statusCode] != 200){
-        NSLog(@"Error getting %@, HTTP status code %i", SERV_PATH, [responseCode statusCode]);
-        return 0;
-    }
-    //parse JSON response
-    NSError *jsonParsingError = nil;
-    NSMutableDictionary *Data = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonParsingError];
-    NSLog(@"%@",Data);
-    return Data;
-}
- */
 
 -(NSMutableDictionary *)TWRequest:(NSDictionary *)params
 {
@@ -74,11 +41,7 @@
     };
     
     post = [post stringByPaddingToLength:[post length]-1 withString:0 startingAtIndex:0]; //ommit last '&'
-    
-    
-    post = [[post stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] stringByReplacingOccurrencesOfString:@"+" withString:@"%2B"] ;
-    
-    //post = [post stringByReplacingOccurrencesOfString:@"\\" withString:@"%5C"];
+    post = [[post stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] stringByReplacingOccurrencesOfString:@"+" withString:@"%2B"]; //handles the odd plus(+) encoding for tokenks that passed to api server
     
     NSData *postData = [post dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
     
@@ -108,8 +71,7 @@
     NSLog(@"%@\n",Data);
     NSLog(@"%@\n",[responseCode allHeaderFields]);
     
-    
-    
+    //DEBUG: showing cookies
     [[[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
         NSLog(@"%@", obj);
     }];
@@ -137,7 +99,7 @@
     NSDictionary * responseData;
     responseData =  [self TWRequest:requestParams]; //get response
     
-    id lgid = [responseData objectForKey:@"login"];
+    id lgid = responseData[@"login"];
     NSString *result = [[NSString alloc] initWithFormat:@"%@",[lgid valueForKey:@"result"]];
     
     if ([result isEqualToString:@"NeedToken"])  //now we have a first response, we need to make a second request with a 'token'
@@ -199,7 +161,7 @@
     responseData =  [self TWRequest:tokRequestParams];
     
     //here should be verification
-    NSMutableString * token = [[NSMutableString alloc] initWithFormat:@"%@",[[responseData objectForKey:@"tokens"] valueForKey:@"translationreviewtoken"]]; //get the token string itself
+    NSMutableString * token = [[NSMutableString alloc] initWithFormat:@"%@",[responseData[@"tokens"] valueForKey:@"translationreviewtoken"]]; //get the token string itself
     
     //request for the review itself
     NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
@@ -210,7 +172,7 @@
     
     responseData =  [self TWRequest:requestParams];
     
-    return (![responseData objectForKey:@"error"] && ![responseData objectForKey:@"warnings"]);
+    return (!responseData[@"error"] && !responseData[@"warnings"]);
 }
 
 - (NSString*) TWUserIdRequestOfUserName:(NSString*)userName
@@ -224,9 +186,9 @@
     if (result)
     {
         
-        resUser = [[NSString alloc] initWithString:[[[[result objectForKey:@"query"] objectForKey:@"users"] objectAtIndex:0] objectForKey:@"name"]];
+        resUser = [[NSString alloc] initWithString:result[@"query"][@"users"][0][@"name"]];
         if ([[resUser lowercaseString] isEqualToString:[userName lowercaseString]])
-            return [[result objectForKey:@"users"] objectForKey:@"userid"];
+            return result [@"users"][@"userid"];
         
     }
     return nil;
