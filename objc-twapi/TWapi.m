@@ -194,6 +194,17 @@
     return nil;
 }
 
+-(NSArray *)TWProjectListMaxDepth:(NSInteger)depth
+{
+    NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
+    [requestParams setObject:@"messagegroups" forKey:@"meta"];
+    [requestParams setObject:[NSString stringWithFormat:@"%d",depth] forKey:@"mgdepth"];
+    [requestParams setObject:@"tree" forKey:@"mgformat"];
+    [requestParams setObject:@"id|label" forKey:@"mgprop"];
+    
+    return [self TWQueryRequest:requestParams][@"query"][@"messagegroups"];
+}
+
 //TODO add some more wrapper functionalities...
 
 @end

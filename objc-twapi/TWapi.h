@@ -20,8 +20,7 @@
 -(NSMutableDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset;
 - (bool)TWTranslationReviewRequest:(NSString *)revision;
 - (NSString*) TWUserIdRequestOfUserName:(NSString*)userName;
+-(NSArray *)TWProjectListMaxDepth:(NSInteger)depth;
 
-
-//@property(nonatomic, copy)NSString* cookie;
 @property(nonatomic, copy)TWUser* user;
 @end
