@@ -99,7 +99,7 @@
     NSDictionary * responseData;
     responseData =  [self TWRequest:requestParams]; //get response
     
-    id lgid = responseData[@"login"];
+    NSDictionary* lgid = responseData[@"login"];
     NSString *result = [[NSString alloc] initWithFormat:@"%@",[lgid valueForKey:@"result"]];
     
     if ([result isEqualToString:@"NeedToken"])  //now we have a first response, we need to make a second request with a 'token'
@@ -112,7 +112,7 @@
     if([result isEqualToString:@"Success"])
     {
         _user.isLoggedin = YES;
-        _user.userId = lgid[@"lguserid"];
+        _user.userId = (NSInteger)lgid[@"lguserid"];
     }
     return (result); //return the login result [Success, NotExists, WrongPass...]
 }
@@ -144,7 +144,7 @@
     [requestParams setObject:[NSString stringWithFormat:@"%d",limit] forKey:@"mclimit"];
     [requestParams setObject:[NSString stringWithFormat:@"%d",offset] forKey:@"mcoffset"];
     [requestParams setObject:@"definition|translation|revision|properties" forKey:@"mcprop"];
-    [requestParams setObject:[NSString stringWithFormat:@"!last-translator:%@|!reviewer:%@|!ignored|translated",_user.userId, _user.userId] forKey:@"mcfilter"];
+    [requestParams setObject:[NSString stringWithFormat:@"!last-translator:%d|!reviewer:%d|!ignored|translated",_user.userId, _user.userId] forKey:@"mcfilter"];
     
     return [self TWQueryRequest:requestParams];
 }
