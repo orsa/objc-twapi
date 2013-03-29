@@ -112,7 +112,7 @@
     if([result isEqualToString:@"Success"])
     {
         _user.isLoggedin = YES;
-        _user.userId = (NSInteger)lgid[@"lguserid"];
+        _user.userId = [(NSNumber*)lgid[@"lguserid"] stringValue];
     }
     return (result); //return the login result [Success, NotExists, WrongPass...]
 }
@@ -144,7 +144,7 @@
     [requestParams setObject:[NSString stringWithFormat:@"%d",limit] forKey:@"mclimit"];
     [requestParams setObject:[NSString stringWithFormat:@"%d",offset] forKey:@"mcoffset"];
     [requestParams setObject:@"definition|translation|revision|properties" forKey:@"mcprop"];
-    [requestParams setObject:[NSString stringWithFormat:@"!last-translator:%d|!reviewer:%d|!ignored|translated",_user.userId, _user.userId] forKey:@"mcfilter"];
+    [requestParams setObject:[NSString stringWithFormat:@"!last-translator:%@|!reviewer:%@|!ignored|translated",_user.userId, _user.userId] forKey:@"mcfilter"];
     
     return [self TWQueryRequest:requestParams];
 }
