@@ -9,6 +9,12 @@
 #import <Foundation/Foundation.h>
 #import "TWUser.h"
 
+#define SERV_PATH @"https://translatewiki.net/w/api.php"
+#define HOST @"https://translatewiki.net"
+
+//DEBUG purpose
+#define LOG(X) NSLog(@"%@\n",X)
+
 @interface TWapi : NSObject
 
 -(id) initForUser:(TWUser*) linkedUser;

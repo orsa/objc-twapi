@@ -8,9 +8,6 @@
 
 #import "TWapi.h"
 
-#define SERV_PATH @"https://translatewiki.net/w/api.php"
-#define HOST @"https://translatewiki.net"
-
 @implementation TWapi
 
 
@@ -52,9 +49,10 @@
     [request setHTTPMethod:@"POST"];
     [request setTimeoutInterval: 15];
     
-    NSLog(@"%@\n",request);
-    NSLog(@"%@\n",[request allHTTPHeaderFields]);
-    NSLog(@"%@\n",postData);
+    //LOG(request);
+    //LOG([request allHTTPHeaderFields]);
+    //LOG(postData);
+    
     //send request
     NSError *error = [[NSError alloc] init];
     NSHTTPURLResponse *responseCode = nil;
@@ -68,13 +66,11 @@
     //parse JSON response
     NSError *jsonParsingError = nil;
     NSMutableDictionary *Data = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonParsingError];
-    NSLog(@"%@\n",Data);
-    NSLog(@"%@\n",[responseCode allHeaderFields]);
+    //LOG(Data);
+    //LOG([responseCode allHeaderFields]);
     
     //DEBUG: showing cookies
-    [[[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-        NSLog(@"%@", obj);
-    }];
+    //[[[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop){LOG(obj);}];
     return Data;
 }
 
