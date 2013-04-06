@@ -131,7 +131,7 @@
     return result;
 }
 
--(NSMutableDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset
+-(NSMutableDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset filter:(NSString*)filter
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
     [requestParams setObject:@"messagecollection" forKey:@"list"];
@@ -139,12 +139,33 @@
     [requestParams setObject:lang forKey:@"mclanguage"];
     [requestParams setObject:[NSString stringWithFormat:@"%d",limit] forKey:@"mclimit"];
     [requestParams setObject:[NSString stringWithFormat:@"%d",offset] forKey:@"mcoffset"];
-    [requestParams setObject:@"definition|translation|revision|properties" forKey:@"mcprop"];
-    [requestParams setObject:[NSString stringWithFormat:@"!last-translator:%@|!reviewer:%@|!ignored|translated",_user.userId, _user.userId] forKey:@"mcfilter"];
+    [requestParams setObject:@"definition|translation|revision|title|properties" forKey:@"mcprop"];
+    [requestParams setObject:filter forKey:@"mcfilter"];
     
     return [self TWQueryRequest:requestParams];
 }
 
+-(NSMutableDictionary *)TWTranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset
+{
+    NSString* mcfilter=[NSString stringWithFormat:@"!last-translator:%@|!reviewer:%@|!ignored|translated",_user.userId, _user.userId];
+    return [self TWMessagesListRequestForLanguage:lang Project:proj Limitfor:limit OffsetToStart:offset filter:mcfilter];
+}
+
+-(NSMutableDictionary *)TWUntranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset
+{
+    NSString* mcfilter=@"!ignored|!translated|!fuzzy";
+    return [self TWMessagesListRequestForLanguage:lang Project:proj Limitfor:limit OffsetToStart:offset filter:mcfilter];
+}
+
+-(NSMutableDictionary*)TWTranslationAidsForTitle:(NSString*)title withProject:(NSString*)proj
+{
+    NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
+    requestParams[@"action"]=@"translationaids";
+    requestParams[@"title"]=title;
+    requestParams[@"group"]=proj;
+    
+    return [self TWRequest:requestParams][@"helpers"];
+}
 
 - (bool)TWTranslationReviewRequest:(NSString *)revision  //accept action
 {
