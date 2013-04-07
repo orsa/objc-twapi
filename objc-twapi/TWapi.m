@@ -131,6 +131,34 @@
     return result;
 }
 
+-(bool)TWEditRequestWithTitle:(NSString*)title andText:(NSString*)text
+{
+    //request for a token
+    NSMutableDictionary *tokRequestParams = [NSMutableDictionary alloc];
+    tokRequestParams = [tokRequestParams initWithObjectsAndKeys:nil];
+    tokRequestParams[@"intoken"]=@"edit";
+    tokRequestParams[@"titles"]=title;
+    tokRequestParams[@"prop"]=@"info";
+    NSDictionary * responseData;
+    responseData =  [self TWQueryRequest:tokRequestParams];
+
+    //here should be verification
+    NSArray* listOfPages=[responseData[@"query"][@"pages"] allValues];
+    NSMutableString * token = [NSMutableString stringWithString:listOfPages[0][@"edittoken"]]; //get the token string itself
+    
+    //request for the review itself
+    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
+    requestParams = [requestParams initWithObjectsAndKeys:nil];
+    requestParams[@"action"]=@"edit";
+    requestParams[@"title"]=title;
+    requestParams[@"text"]=text;
+    requestParams[@"token"]=token;
+    
+    responseData =  [self TWRequest:requestParams];
+    
+    return (!responseData[@"error"] && !responseData[@"warnings"]);
+}
+
 -(NSMutableDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset filter:(NSString*)filter
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];

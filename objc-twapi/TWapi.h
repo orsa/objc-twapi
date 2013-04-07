@@ -23,6 +23,7 @@
 -(NSString *)TWLoginRequestWithPassword:(NSString*) passw;
 -(NSDictionary *)TWLogoutRequest;
 -(NSDictionary *)TWEditRequest:(NSDictionary *)params;
+-(bool)TWEditRequestWithTitle:(NSString*)title andText:(NSString*)text;
 -(NSMutableDictionary *)TWTranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset;
 -(NSMutableDictionary *)TWUntranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset;
 -(NSMutableDictionary*)TWTranslationAidsForTitle:(NSString*)title withProject:(NSString*)proj;
