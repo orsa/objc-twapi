@@ -167,7 +167,7 @@
     [requestParams setObject:lang forKey:@"mclanguage"];
     [requestParams setObject:[NSString stringWithFormat:@"%d",limit] forKey:@"mclimit"];
     [requestParams setObject:[NSString stringWithFormat:@"%d",offset] forKey:@"mcoffset"];
-    [requestParams setObject:@"definition|translation|revision|title|properties" forKey:@"mcprop"];
+    [requestParams setObject:@"definition|translation|revision|properties" forKey:@"mcprop"];
     [requestParams setObject:filter forKey:@"mcfilter"];
     
     return [self TWQueryRequest:requestParams];
