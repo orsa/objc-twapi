@@ -21,6 +21,73 @@
     return nil;
 }
 
+//Asynchronous general request
+-(void)TWPerformRequestWithParams:(NSDictionary *)params completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
+{
+    
+    NSString *post = @"";
+    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
+    requestParams = [requestParams initWithDictionary:params];
+    [requestParams setObject:@"json" forKey:@"format"];
+    
+    //build URL line with query parameters - taken from requestParams dictionary.
+    for( NSString *aKey in requestParams )
+    {
+        post = [post stringByAppendingString:aKey];
+        post = [post stringByAppendingString:@"="];
+        post = [post stringByAppendingString:[requestParams valueForKey:aKey]];
+        post = [post stringByAppendingString:@"&"];
+    };
+    
+    post = [post stringByPaddingToLength:[post length]-1 withString:0 startingAtIndex:0]; //ommit last '&'
+    post = [[post stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] stringByReplacingOccurrencesOfString:@"+" withString:@"%2B"]; //handles the odd plus(+) encoding for tokenks that passed to api server
+    
+    NSData *postData = [post dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
+    
+    // Create the request
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString: SERV_PATH]];
+    [request setValue:[NSString stringWithFormat:@"%d", [postData length]] forHTTPHeaderField:@"Content-Length"];
+    [request setHTTPBody:postData];
+    [request setHTTPMethod:@"POST"];
+    [request setTimeoutInterval: 15];
+    [request setHTTPShouldHandleCookies:YES];
+    
+    // Make an NSOperationQueue
+    NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+        //[queue setName:@"com.your.unique.queue.name"];
+    
+    // Send an asyncronous request on the queue
+    [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+        
+        // If there was an error getting the data
+        if (error) {
+            
+            dispatch_async(dispatch_get_main_queue(), ^(void) {
+                completionBlock(nil, error);
+            });
+            return;
+        }
+        
+        // Decode the data
+        NSError *jsonError;
+        NSDictionary *responseDict = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
+        
+        // If there was an error decoding the JSON
+        if (jsonError) {
+            
+            dispatch_async(dispatch_get_main_queue(), ^(void) {
+                NSLog(@"JSON error");
+            });
+            return;
+        }
+        
+        //call completion handler
+        dispatch_async(dispatch_get_main_queue(), ^(void) {
+            completionBlock(responseDict, nil);
+        });
+    }];
+}
+
 -(NSMutableDictionary *)TWRequest:(NSDictionary *)params
 {
     NSString *post = @"";
@@ -74,15 +141,22 @@
     return Data;
 }
 
+//general query - additional wrap is needed
+-(void)TWQueryRequestAs:(NSDictionary *)params completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
+{
+    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
+    requestParams = [requestParams initWithDictionary:params];
+    [requestParams setObject:@"query" forKey:@"action"];
+    [self TWPerformRequestWithParams:requestParams completionHandler:completionBlock];
+}
 
--(NSMutableDictionary *)TWQueryRequest:(NSDictionary *)params //general query - additional wrap is needed
+-(NSMutableDictionary*)TWQueryRequest:(NSDictionary *)params
 {
     NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
     requestParams = [requestParams initWithDictionary:params];
     [requestParams setObject:@"query" forKey:@"action"];
     return [self TWRequest:requestParams];
 }
-
 
 -(NSString *)TWLoginRequestWithPassword:(NSString*) passw
 {
@@ -159,7 +233,7 @@
     return (!responseData[@"error"] && !responseData[@"warnings"]);
 }
 
--(NSMutableDictionary *)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset filter:(NSString*)filter
+-(void)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset filter:(NSString*)filter completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
     [requestParams setObject:@"messagecollection" forKey:@"list"];
@@ -170,19 +244,19 @@
     [requestParams setObject:@"definition|translation|revision|properties" forKey:@"mcprop"];
     [requestParams setObject:filter forKey:@"mcfilter"];
     
-    return [self TWQueryRequest:requestParams];
+    [self TWQueryRequestAs:requestParams completionHandler:completionBlock];
 }
 
--(NSMutableDictionary *)TWTranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset
+-(void)TWTranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
 {
     NSString* mcfilter=[NSString stringWithFormat:@"!last-translator:%@|!reviewer:%@|!ignored|translated",_user.userId, _user.userId];
-    return [self TWMessagesListRequestForLanguage:lang Project:proj Limitfor:limit OffsetToStart:offset filter:mcfilter];
+    [self TWMessagesListRequestForLanguage:lang Project:proj Limitfor:limit OffsetToStart:offset filter:mcfilter completionHandler:completionBlock];
 }
 
--(NSMutableDictionary *)TWUntranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset
+-(void)TWUntranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
 {
     NSString* mcfilter=@"!ignored|!translated|!fuzzy";
-    return [self TWMessagesListRequestForLanguage:lang Project:proj Limitfor:limit OffsetToStart:offset filter:mcfilter];
+    [self TWMessagesListRequestForLanguage:lang Project:proj Limitfor:limit OffsetToStart:offset filter:mcfilter completionHandler:completionBlock];
 }
 
 -(NSMutableDictionary*)TWTranslationAidsForTitle:(NSString*)title withProject:(NSString*)proj
