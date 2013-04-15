@@ -192,12 +192,13 @@
     }];
 }
 
--(NSDictionary *)TWLogoutRequest
+-(void)TWLogoutRequest:(void (^)(NSDictionary *, NSError *))completionBlock;
+
 {
     NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
     requestParams = [requestParams initWithObjectsAndKeys:nil];
     [requestParams setObject:@"logout" forKey:@"action"];
-    return [self TWRequest:requestParams];
+    [self TWPerformRequestWithParams:requestParams completionHandler:completionBlock];
 }
 
 -(NSDictionary *)TWEditRequest:(NSDictionary *)params
@@ -210,7 +211,7 @@
     return result;
 }
 
--(bool)TWEditRequestWithTitle:(NSString*)title andText:(NSString*)text
+-(void)TWEditRequestWithTitle:(NSString*)title andText:(NSString*)text completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
 {
     //request for a token
     NSMutableDictionary *tokRequestParams = [NSMutableDictionary alloc];
@@ -218,24 +219,23 @@
     tokRequestParams[@"intoken"]=@"edit";
     tokRequestParams[@"titles"]=title;
     tokRequestParams[@"prop"]=@"info";
-    NSDictionary * responseData;
-    responseData =  [self TWQueryRequest:tokRequestParams];
-
-    //here should be verification
-    NSArray* listOfPages=[responseData[@"query"][@"pages"] allValues];
-    NSMutableString * token = [NSMutableString stringWithString:listOfPages[0][@"edittoken"]]; //get the token string itself
-    
-    //request for the review itself
-    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
-    requestParams = [requestParams initWithObjectsAndKeys:nil];
-    requestParams[@"action"]=@"edit";
-    requestParams[@"title"]=title;
-    requestParams[@"text"]=text;
-    requestParams[@"token"]=token;
-    
-    responseData =  [self TWRequest:requestParams];
-    
-    return (!responseData[@"error"] && !responseData[@"warnings"]);
+    [self TWQueryRequestAsync:tokRequestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+        //here should be verification
+        NSArray* listOfPages=[responseData[@"query"][@"pages"] allValues];
+        NSMutableString * token = [NSMutableString stringWithString:listOfPages[0][@"edittoken"]]; //get the token string itself
+        
+        //request for the review itself
+        NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
+        requestParams = [requestParams initWithObjectsAndKeys:nil];
+        requestParams[@"action"]=@"edit";
+        requestParams[@"title"]=title;
+        requestParams[@"text"]=text;
+        requestParams[@"token"]=token;
+        
+        [self TWPerformRequestWithParams:requestParams completionHandler:completionBlock];
+        
+        //return (!responseData[@"error"] && !responseData[@"warnings"]);
+    }];
 }
 
 -(void)TWMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset filter:(NSString*)filter completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
