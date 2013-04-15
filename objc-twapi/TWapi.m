@@ -276,7 +276,7 @@
     //return [self TWRequest:requestParams][@"helpers"];
 }
 
-- (void)TWTranslationReviewRequest:(NSString *)revision completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
+- (void)TWTranslationReviewRequest:(NSString *)revision completionHandler:(void (^)(BOOL, NSError *))completionBlock
   //accept action
 {
     //request for a token
@@ -295,10 +295,14 @@
         [requestParams setObject:revision forKey:@"revision"];
         [requestParams setObject:token forKey:@"token"];
         
-        [self TWPerformRequestWithParams:requestParams completionHandler:completionBlock];
+        [self TWPerformRequestWithParams:requestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+            
+            //call the handler
+            dispatch_async(dispatch_get_main_queue(), ^(void) {
+                completionBlock((!responseData[@"error"] && !responseData[@"warnings"]), error);
+            });
+        }];
     }];
-    
-    //return (!responseData[@"error"] && !responseData[@"warnings"]);
 }
 
 - (NSString*) TWUserIdRequestOfUserName:(NSString*)userName

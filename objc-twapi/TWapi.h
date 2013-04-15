@@ -29,7 +29,7 @@
 -(void)TWTranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
 -(void)TWUntranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
 -(void)TWTranslationAidsForTitle:(NSString*)title withProject:(NSString*)proj completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
-- (void)TWTranslationReviewRequest:(NSString *)revision completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
+- (void)TWTranslationReviewRequest:(NSString *)revision completionHandler:(void (^)(BOOL, NSError *))completionBlock;
 - (NSString*) TWUserIdRequestOfUserName:(NSString*)userName;
 -(void)TWProjectListMaxDepth:(NSInteger)depth completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
 
