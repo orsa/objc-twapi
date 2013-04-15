@@ -142,7 +142,7 @@
 }
 
 //general query - additional wrap is needed
--(void)TWQueryRequestAs:(NSDictionary *)params completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
+-(void)TWQueryRequestAsync:(NSDictionary *)params completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
 {
     NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
     requestParams = [requestParams initWithDictionary:params];
@@ -158,7 +158,7 @@
     return [self TWRequest:requestParams];
 }
 
--(NSString *)TWLoginRequestWithPassword:(NSString*) passw
+-(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] init];
     //add the login parameters
@@ -166,25 +166,30 @@
     [requestParams setObject:passw forKey:@"lgpassword"];
     [requestParams setObject:@"login" forKey:@"action"];
     
-    NSDictionary * responseData;
-    responseData =  [self TWRequest:requestParams]; //get response
-    
-    NSDictionary* lgid = responseData[@"login"];
-    NSString *result = [[NSString alloc] initWithFormat:@"%@",[lgid valueForKey:@"result"]];
-    
-    if ([result isEqualToString:@"NeedToken"])  //now we have a first response, we need to make a second request with a 'token'
-    {
-        [requestParams setObject:[lgid valueForKey:@"token"] forKey:@"lgtoken"]; //add the token parameter
-        responseData =  [self TWRequest:requestParams];  //second request
-        lgid = responseData[@"login"];
-        result = lgid[@"result"];
-    }
-    if([result isEqualToString:@"Success"])
-    {
-        _user.isLoggedin = YES;
-        _user.userId = [(NSNumber*)lgid[@"lguserid"] stringValue];
-    }
-    return (result); //return the login result [Success, NotExists, WrongPass...]
+    [self TWPerformRequestWithParams:requestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+        NSDictionary* lgid = responseData[@"login"];
+        NSString *result = [[NSString alloc] initWithFormat:@"%@",[lgid valueForKey:@"result"]];
+        
+        if ([result isEqualToString:@"NeedToken"])  //now we have a first response, we need to make a second request with a 'token'
+        {
+            [requestParams setObject:[lgid valueForKey:@"token"] forKey:@"lgtoken"]; //add the token parameter
+            [self TWPerformRequestWithParams:requestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+                NSDictionary* lgid = responseData[@"login"];
+                NSString* result = lgid[@"result"];
+                if([result isEqualToString:@"Success"])
+                {
+                    _user.isLoggedin = YES;
+                    _user.userId = [(NSNumber*)lgid[@"lguserid"] stringValue];
+                }
+                //call completion handler
+                dispatch_async(dispatch_get_main_queue(), ^(void) {
+                    completionBlock(responseData, error);
+                });
+                //return (result); //return the login result [Success, NotExists, WrongPass...]//get response
+            }];  //second request
+        }
+        
+    }];
 }
 
 -(NSDictionary *)TWLogoutRequest
@@ -244,7 +249,7 @@
     [requestParams setObject:@"definition|translation|revision|properties" forKey:@"mcprop"];
     [requestParams setObject:filter forKey:@"mcfilter"];
     
-    [self TWQueryRequestAs:requestParams completionHandler:completionBlock];
+    [self TWQueryRequestAsync:requestParams completionHandler:completionBlock];
 }
 
 -(void)TWTranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
@@ -259,39 +264,41 @@
     [self TWMessagesListRequestForLanguage:lang Project:proj Limitfor:limit OffsetToStart:offset filter:mcfilter completionHandler:completionBlock];
 }
 
--(NSMutableDictionary*)TWTranslationAidsForTitle:(NSString*)title withProject:(NSString*)proj
+-(void)TWTranslationAidsForTitle:(NSString*)title withProject:(NSString*)proj completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
     requestParams[@"action"]=@"translationaids";
     requestParams[@"title"]=title;
     requestParams[@"group"]=proj;
     
-    return [self TWRequest:requestParams][@"helpers"];
+    [self TWPerformRequestWithParams:requestParams completionHandler:completionBlock];
+    
+    //return [self TWRequest:requestParams][@"helpers"];
 }
 
-- (bool)TWTranslationReviewRequest:(NSString *)revision  //accept action
+- (void)TWTranslationReviewRequest:(NSString *)revision completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
+  //accept action
 {
     //request for a token
     NSMutableDictionary *tokRequestParams = [NSMutableDictionary alloc];
     tokRequestParams = [tokRequestParams initWithObjectsAndKeys:nil];
     [tokRequestParams setObject:@"tokens" forKey:@"action"];
     [tokRequestParams setObject:@"translationreview" forKey:@"type"];
-    NSDictionary * responseData;
-    responseData =  [self TWRequest:tokRequestParams];
+    [self TWPerformRequestWithParams:tokRequestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+        //here should be verification
+        NSMutableString * token = [[NSMutableString alloc] initWithFormat:@"%@",[responseData[@"tokens"] valueForKey:@"translationreviewtoken"]]; //get the token string itself
+        
+        //request for the review itself
+        NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
+        requestParams = [requestParams initWithObjectsAndKeys:nil];
+        [requestParams setObject:@"translationreview" forKey:@"action"];
+        [requestParams setObject:revision forKey:@"revision"];
+        [requestParams setObject:token forKey:@"token"];
+        
+        [self TWPerformRequestWithParams:requestParams completionHandler:completionBlock];
+    }];
     
-    //here should be verification
-    NSMutableString * token = [[NSMutableString alloc] initWithFormat:@"%@",[responseData[@"tokens"] valueForKey:@"translationreviewtoken"]]; //get the token string itself
-    
-    //request for the review itself
-    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
-    requestParams = [requestParams initWithObjectsAndKeys:nil];
-    [requestParams setObject:@"translationreview" forKey:@"action"];
-    [requestParams setObject:revision forKey:@"revision"];
-    [requestParams setObject:token forKey:@"token"];
-    
-    responseData =  [self TWRequest:requestParams];
-    
-    return (!responseData[@"error"] && !responseData[@"warnings"]);
+    //return (!responseData[@"error"] && !responseData[@"warnings"]);
 }
 
 - (NSString*) TWUserIdRequestOfUserName:(NSString*)userName
@@ -313,7 +320,7 @@
     return nil;
 }
 
--(NSArray *)TWProjectListMaxDepth:(NSInteger)depth
+-(void)TWProjectListMaxDepth:(NSInteger)depth completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
     [requestParams setObject:@"messagegroups" forKey:@"meta"];
@@ -321,7 +328,8 @@
     [requestParams setObject:@"tree" forKey:@"mgformat"];
     [requestParams setObject:@"id|label" forKey:@"mgprop"];
     
-    return [self TWQueryRequest:requestParams][@"query"][@"messagegroups"];
+    [self TWQueryRequestAsync:requestParams completionHandler:completionBlock];
+    //return [self TWQueryRequest:requestParams][@"query"][@"messagegroups"];
 }
 
 //TODO add some more wrapper functionalities...

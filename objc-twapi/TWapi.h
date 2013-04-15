@@ -22,18 +22,18 @@
 -(id) initForUser:(TWUser*) linkedUser;
 -(NSMutableDictionary *)TWRequest:(NSDictionary *)params;
 -(NSMutableDictionary *)TWQueryRequest:(NSDictionary *)params;
--(NSString *)TWLoginRequestWithPassword:(NSString*) passw;
+-(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
 -(NSDictionary *)TWLogoutRequest;
 -(NSDictionary *)TWEditRequest:(NSDictionary *)params;
 -(bool)TWEditRequestWithTitle:(NSString*)title andText:(NSString*)text;
 -(void)TWTranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
 -(void)TWUntranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
--(NSMutableDictionary*)TWTranslationAidsForTitle:(NSString*)title withProject:(NSString*)proj;
-- (bool)TWTranslationReviewRequest:(NSString *)revision;
+-(void)TWTranslationAidsForTitle:(NSString*)title withProject:(NSString*)proj completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
+- (void)TWTranslationReviewRequest:(NSString *)revision completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
 - (NSString*) TWUserIdRequestOfUserName:(NSString*)userName;
--(NSArray *)TWProjectListMaxDepth:(NSInteger)depth;
+-(void)TWProjectListMaxDepth:(NSInteger)depth completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
 
--(void)TWQueryRequestAs:(NSDictionary *)params completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
+-(void)TWQueryRequestAsync:(NSDictionary *)params completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
 
 @property(nonatomic, copy)TWUser* user;
 @end
