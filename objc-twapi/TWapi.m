@@ -211,7 +211,7 @@
     return result;
 }
 
--(void)TWEditRequestWithTitle:(NSString*)title andText:(NSString*)text completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
+-(void)TWEditRequestWithTitle:(NSString*)title andText:(NSString*)text completionHandler:(void (^)(BOOL, NSError *))completionBlock
 {
     //request for a token
     NSMutableDictionary *tokRequestParams = [NSMutableDictionary alloc];
@@ -232,9 +232,12 @@
         requestParams[@"text"]=text;
         requestParams[@"token"]=token;
         
-        [self TWPerformRequestWithParams:requestParams completionHandler:completionBlock];
-        
-        //return (!responseData[@"error"] && !responseData[@"warnings"]);
+        [self TWPerformRequestWithParams:requestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+            //call the handler
+            dispatch_async(dispatch_get_main_queue(), ^(void) {
+                completionBlock((!responseData[@"error"] && !responseData[@"warnings"]), error);
+            });
+        }];
     }];
 }
 
@@ -324,7 +327,7 @@
     return nil;
 }
 
--(void)TWProjectListMaxDepth:(NSInteger)depth completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
+-(void)TWProjectListMaxDepth:(NSInteger)depth completionHandler:(void (^)(NSArray *, NSError *))completionBlock
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
     [requestParams setObject:@"messagegroups" forKey:@"meta"];
@@ -332,8 +335,11 @@
     [requestParams setObject:@"tree" forKey:@"mgformat"];
     [requestParams setObject:@"id|label" forKey:@"mgprop"];
     
-    [self TWQueryRequestAsync:requestParams completionHandler:completionBlock];
-    //return [self TWQueryRequest:requestParams][@"query"][@"messagegroups"];
+    [self TWQueryRequestAsync:requestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+        dispatch_async(dispatch_get_main_queue(), ^(void) {
+            completionBlock(responseData[@"query"][@"messagegroups"], error);
+        });
+    }];
 }
 
 //TODO add some more wrapper functionalities...
