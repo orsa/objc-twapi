@@ -158,7 +158,7 @@
     return [self TWRequest:requestParams];
 }
 
--(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
+-(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSString *, NSError *))completionBlock
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] init];
     //add the login parameters
@@ -183,7 +183,7 @@
                 }
                 //call completion handler
                 dispatch_async(dispatch_get_main_queue(), ^(void) {
-                    completionBlock(responseData, error);
+                    completionBlock(result, error);
                 });
                 //return (result); //return the login result [Success, NotExists, WrongPass...]//get response
             }];  //second request

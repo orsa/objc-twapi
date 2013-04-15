@@ -22,7 +22,7 @@
 -(id) initForUser:(TWUser*) linkedUser;
 -(NSMutableDictionary *)TWRequest:(NSDictionary *)params;
 -(NSMutableDictionary *)TWQueryRequest:(NSDictionary *)params;
--(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
+-(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSString *, NSError *))completionBlock;
 -(void)TWLogoutRequest:(void (^)(NSDictionary *, NSError *))completionBlock;
 -(NSDictionary *)TWEditRequest:(NSDictionary *)params;
 -(void)TWEditRequestWithTitle:(NSString*)title andText:(NSString*)text completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
