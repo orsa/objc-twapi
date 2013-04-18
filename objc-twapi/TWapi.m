@@ -5,11 +5,15 @@
 //  Created by Or Sagi on 21/12/12 (end of the world).
 //  Copyright (c) 2012 Or Sagi. All rights reserved.
 //
+//*********************************************************************************
+// This is an API wrapper implementation for: https://translatewiki.net/w/api.php .
+// Refer to: https://github.com/orsa/objc-twapi .
+//*********************************************************************************
+//
 
 #import "TWapi.h"
 
 @implementation TWapi
-
 
 -(id) initForUser:(TWUser*) linkedUser
 {
@@ -21,10 +25,15 @@
     return nil;
 }
 
-//Asynchronous general request
+//*********************************************************************************
+//Asynchronous general request - this is the sole method which "speaks" to the API server.
+//It does:
+// a) prepare an HTTP request out of the given parameters;
+// b) create a connection with the API server, send the request and receive its response;
+// c) handle respose: invokes hanler, inform on error, parse JSON, and send it to the given completionBlock
+//*********************************************************************************
 -(void)TWPerformRequestWithParams:(NSDictionary *)params completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
 {
-    
     NSString *post = @"";
     NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
     requestParams = [requestParams initWithDictionary:params];
@@ -60,8 +69,8 @@
     [NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
         
         // If there was an error getting the data
-        if (error) {
-            
+        if (error)
+        {
             dispatch_async(dispatch_get_main_queue(), ^(void) {
                 completionBlock(nil, error);
             });
@@ -73,8 +82,8 @@
         NSDictionary *responseDict = [NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError];
         
         // If there was an error decoding the JSON
-        if (jsonError) {
-            
+        if (jsonError)
+        {
             dispatch_async(dispatch_get_main_queue(), ^(void) {
                 NSLog(@"JSON error");
             });
@@ -88,58 +97,6 @@
     }];
 }
 
--(NSMutableDictionary *)TWRequest:(NSDictionary *)params
-{
-    NSString *post = @"";
-    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
-    requestParams = [requestParams initWithDictionary:params];
-    [requestParams setObject:@"json" forKey:@"format"];
-    
-    //build URL line with query parameters - taken from requestParams dictionary.
-    for( NSString *aKey in requestParams )
-    {
-        post = [post stringByAppendingString:aKey];
-        post = [post stringByAppendingString:@"="];
-        post = [post stringByAppendingString:[requestParams valueForKey:aKey]];
-        post = [post stringByAppendingString:@"&"];
-    };
-    
-    post = [post stringByPaddingToLength:[post length]-1 withString:0 startingAtIndex:0]; //ommit last '&'
-    post = [[post stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] stringByReplacingOccurrencesOfString:@"+" withString:@"%2B"]; //handles the odd plus(+) encoding for tokenks that passed to api server
-    
-    NSData *postData = [post dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
-    
-    
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString: SERV_PATH]];
-    [request setValue:[NSString stringWithFormat:@"%d", [postData length]] forHTTPHeaderField:@"Content-Length"];
-    [request setHTTPBody:postData];
-    [request setHTTPMethod:@"POST"];
-    [request setTimeoutInterval: 15];
-    
-    //LOG(request);
-    //LOG([request allHTTPHeaderFields]);
-    //LOG(postData);
-    
-    //send request
-    NSError *error = [[NSError alloc] init];
-    NSHTTPURLResponse *responseCode = nil;
-    [request setHTTPShouldHandleCookies:YES];
-    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&responseCode error:&error];
-    //_user.authCookie = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookiesForURL:[request URL]][0];
-    if([responseCode statusCode] != 200){
-        NSLog(@"Error getting %@, HTTP status code %i", post, [responseCode statusCode]);
-        return 0;
-    }
-    //parse JSON response
-    NSError *jsonParsingError = nil;
-    NSMutableDictionary *Data = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonParsingError];
-    //LOG(Data);
-    //LOG([responseCode allHeaderFields]);
-    
-    //DEBUG: showing cookies
-    //[[[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop){LOG(obj);}];
-    return Data;
-}
 
 //general query - additional wrap is needed
 -(void)TWQueryRequestAsync:(NSDictionary *)params completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
@@ -150,14 +107,11 @@
     [self TWPerformRequestWithParams:requestParams completionHandler:completionBlock];
 }
 
--(NSMutableDictionary*)TWQueryRequest:(NSDictionary *)params
-{
-    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
-    requestParams = [requestParams initWithDictionary:params];
-    [requestParams setObject:@"query" forKey:@"action"];
-    return [self TWRequest:requestParams];
-}
-
+//*********************************************************************************
+//Login Request - this method handles login request by two steps
+// 1)requests token
+// 2)validate this token - login approval
+//*********************************************************************************
 -(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSString *, NSError *))completionBlock
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] init];
@@ -192,8 +146,10 @@
     }];
 }
 
--(void)TWLogoutRequest:(void (^)(NSDictionary *, NSError *))completionBlock;
-
+//*********************************************************************************
+//Logout Request - this method handles logout.
+//*********************************************************************************
+-(void)TWLogoutRequest:(void (^)(NSDictionary *, NSError *))completionBlock
 {
     NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
     requestParams = [requestParams initWithObjectsAndKeys:nil];
@@ -201,16 +157,9 @@
     [self TWPerformRequestWithParams:requestParams completionHandler:completionBlock];
 }
 
--(NSDictionary *)TWEditRequest:(NSDictionary *)params
-{
-    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
-    requestParams = [requestParams initWithDictionary:params];
-    [requestParams setObject:@"edit" forKey:@"action"];
-    NSDictionary * result = [self TWRequest:requestParams];
-    self.user.isLoggedin = NO;
-    return result;
-}
-
+//*********************************************************************************
+//Edit Request - this method handles edits, e.g translasions of messages.
+//*********************************************************************************
 -(void)TWEditRequestWithTitle:(NSString*)title andText:(NSString*)text completionHandler:(void (^)(BOOL, NSError *))completionBlock
 {
     //request for a token
@@ -279,8 +228,10 @@
     //return [self TWRequest:requestParams][@"helpers"];
 }
 
+//*********************************************************************************
+//Translation Review Request - this method handles message translasion acceptance.
+//*********************************************************************************
 - (void)TWTranslationReviewRequest:(NSString *)revision completionHandler:(void (^)(BOOL, NSError *))completionBlock
-  //accept action
 {
     //request for a token
     NSMutableDictionary *tokRequestParams = [NSMutableDictionary alloc];
@@ -308,25 +259,9 @@
     }];
 }
 
-- (NSString*) TWUserIdRequestOfUserName:(NSString*)userName
-{
-    NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
-    [requestParams setObject:@"users" forKey:@"list"];
-    [requestParams setObject:userName forKey:@"ususers"];
-   
-    NSDictionary* result = [self TWQueryRequest:requestParams];
-    NSString* resUser;
-    if (result)
-    {
-        
-        resUser = [[NSString alloc] initWithString:result[@"query"][@"users"][0][@"name"]];
-        if ([[resUser lowercaseString] isEqualToString:[userName lowercaseString]])
-            return result [@"users"][@"userid"];
-        
-    }
-    return nil;
-}
-
+//*********************************************************************************
+//This method retreives project list & details from server.
+//*********************************************************************************
 -(void)TWProjectListMaxDepth:(NSInteger)depth completionHandler:(void (^)(NSArray *, NSError *))completionBlock
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
@@ -343,5 +278,100 @@
 }
 
 //TODO add some more wrapper functionalities...
+
+
+
+#pragma mark - deprecated methods
+//synchronous version methods
+
+-(NSMutableDictionary *)TWRequest:(NSDictionary *)params
+{
+    NSString *post = @"";
+    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
+    requestParams = [requestParams initWithDictionary:params];
+    [requestParams setObject:@"json" forKey:@"format"];
+    
+    //build URL line with query parameters - taken from requestParams dictionary.
+    for( NSString *aKey in requestParams )
+    {
+        post = [post stringByAppendingString:aKey];
+        post = [post stringByAppendingString:@"="];
+        post = [post stringByAppendingString:[requestParams valueForKey:aKey]];
+        post = [post stringByAppendingString:@"&"];
+    };
+    
+    post = [post stringByPaddingToLength:[post length]-1 withString:0 startingAtIndex:0]; //ommit last '&'
+    post = [[post stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding] stringByReplacingOccurrencesOfString:@"+" withString:@"%2B"]; //handles the odd plus(+) encoding for tokenks that passed to api server
+    
+    NSData *postData = [post dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
+    
+    
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString: SERV_PATH]];
+    [request setValue:[NSString stringWithFormat:@"%d", [postData length]] forHTTPHeaderField:@"Content-Length"];
+    [request setHTTPBody:postData];
+    [request setHTTPMethod:@"POST"];
+    [request setTimeoutInterval: 15];
+    
+    //LOG(request);
+    //LOG([request allHTTPHeaderFields]);
+    //LOG(postData);
+    
+    //send request
+    NSError *error = [[NSError alloc] init];
+    NSHTTPURLResponse *responseCode = nil;
+    [request setHTTPShouldHandleCookies:YES];
+    NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&responseCode error:&error];
+    //_user.authCookie = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookiesForURL:[request URL]][0];
+    if([responseCode statusCode] != 200){
+        NSLog(@"Error getting %@, HTTP status code %i", post, [responseCode statusCode]);
+        return 0;
+    }
+    //parse JSON response
+    NSError *jsonParsingError = nil;
+    NSMutableDictionary *Data = [NSJSONSerialization JSONObjectWithData:responseData options:0 error:&jsonParsingError];
+    //LOG(Data);
+    //LOG([responseCode allHeaderFields]);
+    
+    //DEBUG: showing cookies
+    //[[[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop){LOG(obj);}];
+    return Data;
+}
+
+-(NSDictionary *)TWEditRequest:(NSDictionary *)params
+{
+    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
+    requestParams = [requestParams initWithDictionary:params];
+    [requestParams setObject:@"edit" forKey:@"action"];
+    NSDictionary * result = [self TWRequest:requestParams];
+    self.user.isLoggedin = NO;
+    return result;
+}
+
+-(NSMutableDictionary*)TWQueryRequest:(NSDictionary *)params
+{
+    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
+    requestParams = [requestParams initWithDictionary:params];
+    [requestParams setObject:@"query" forKey:@"action"];
+    return [self TWRequest:requestParams];
+}
+
+- (NSString*) TWUserIdRequestOfUserName:(NSString*)userName
+{
+    NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] initWithObjectsAndKeys:nil];
+    [requestParams setObject:@"users" forKey:@"list"];
+    [requestParams setObject:userName forKey:@"ususers"];
+    
+    NSDictionary* result = [self TWQueryRequest:requestParams];
+    NSString* resUser;
+    if (result)
+    {
+        
+        resUser = [[NSString alloc] initWithString:result[@"query"][@"users"][0][@"name"]];
+        if ([[resUser lowercaseString] isEqualToString:[userName lowercaseString]])
+            return result [@"users"][@"userid"];
+        
+    }
+    return nil;
+}
 
 @end
