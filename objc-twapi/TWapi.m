@@ -107,24 +107,13 @@
     [self TWPerformRequestWithParams:requestParams completionHandler:completionBlock];
 }
 
-<<<<<<< HEAD
 //*********************************************************************************
 //Login Request - this method handles login request by two steps
 // 1)requests token
 // 2)validate this token - login approval
 //*********************************************************************************
--(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSString *, NSError *))completionBlock
-=======
--(NSMutableDictionary*)TWQueryRequest:(NSDictionary *)params
-{
-    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
-    requestParams = [requestParams initWithDictionary:params];
-    [requestParams setObject:@"query" forKey:@"action"];
-    return [self TWRequest:requestParams];
-}
 
 -(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSString *, NSError *))completionBlock 
->>>>>>> parts i forgot to sync last time
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] init];
     //add the login parameters
