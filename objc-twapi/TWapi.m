@@ -107,42 +107,69 @@
     [self TWPerformRequestWithParams:requestParams completionHandler:completionBlock];
 }
 
+<<<<<<< HEAD
 //*********************************************************************************
 //Login Request - this method handles login request by two steps
 // 1)requests token
 // 2)validate this token - login approval
 //*********************************************************************************
 -(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSString *, NSError *))completionBlock
+=======
+-(NSMutableDictionary*)TWQueryRequest:(NSDictionary *)params
+{
+    NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
+    requestParams = [requestParams initWithDictionary:params];
+    [requestParams setObject:@"query" forKey:@"action"];
+    return [self TWRequest:requestParams];
+}
+
+-(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSString *, NSError *))completionBlock 
+>>>>>>> parts i forgot to sync last time
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] init];
     //add the login parameters
-    [requestParams setObject:_user.userName forKey:@"lgname"];
-    [requestParams setObject:passw forKey:@"lgpassword"];
-    [requestParams setObject:@"login" forKey:@"action"];
+    requestParams[@"lgname"]=_user.userName;
+    requestParams[@"lgpassword"]=passw;
+    requestParams[@"action"]=@"login";
     
     [self TWPerformRequestWithParams:requestParams completionHandler:^(NSDictionary* responseData, NSError* error){
-        NSDictionary* lgid = responseData[@"login"];
-        NSString *result = [[NSString alloc] initWithFormat:@"%@",[lgid valueForKey:@"result"]];
+        if(!error){
+            NSDictionary* lgid = responseData[@"login"];
+            NSString *result = [[NSString alloc] initWithFormat:@"%@",[lgid valueForKey:@"result"]];
         
-        if ([result isEqualToString:@"NeedToken"])  //now we have a first response, we need to make a second request with a 'token'
-        {
-            [requestParams setObject:[lgid valueForKey:@"token"] forKey:@"lgtoken"]; //add the token parameter
-            [self TWPerformRequestWithParams:requestParams completionHandler:^(NSDictionary* responseData, NSError* error){
-                NSDictionary* lgid = responseData[@"login"];
-                NSString* result = lgid[@"result"];
-                if([result isEqualToString:@"Success"])
-                {
-                    _user.isLoggedin = YES;
-                    _user.userId = [(NSNumber*)lgid[@"lguserid"] stringValue];
-                }
-                //call completion handler
-                dispatch_async(dispatch_get_main_queue(), ^(void) {
-                    completionBlock(result, error);
-                });
-                //return (result); //return the login result [Success, NotExists, WrongPass...]//get response
-            }];  //second request
+            if ([result isEqualToString:@"NeedToken"])  //now we have a first response, we need to make a second request with a 'token'
+            {
+                [requestParams setObject:[lgid valueForKey:@"token"] forKey:@"lgtoken"]; //add the token parameter
+                [self TWPerformRequestWithParams:requestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+                    if(!error){
+                        NSDictionary* lgid = responseData[@"login"];
+                        NSString* result = lgid[@"result"];
+                        if([result isEqualToString:@"Success"])
+                        {
+                            _user.isLoggedin = YES;
+                            _user.userId = [(NSNumber*)lgid[@"lguserid"] stringValue];
+                        }
+                        //call completion handler
+                        dispatch_async(dispatch_get_main_queue(), ^(void) {
+                            completionBlock(result, error);
+                        });
+                    }
+                    else{
+                        //call completion handler with error
+                        dispatch_async(dispatch_get_main_queue(), ^(void) {
+                            completionBlock(nil, error);
+                        });
+                    }
+                }];  //second request
+            }
         }
-        
+        else
+        {
+            //call completion handler with error
+            dispatch_async(dispatch_get_main_queue(), ^(void) {
+                completionBlock(nil, error);
+            });
+        }
     }];
 }
 
@@ -165,13 +192,11 @@
     //request for a token
     NSMutableDictionary *tokRequestParams = [NSMutableDictionary alloc];
     tokRequestParams = [tokRequestParams initWithObjectsAndKeys:nil];
-    tokRequestParams[@"intoken"]=@"edit";
-    tokRequestParams[@"titles"]=title;
-    tokRequestParams[@"prop"]=@"info";
-    [self TWQueryRequestAsync:tokRequestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+    tokRequestParams[@"action"]=@"tokens";
+    tokRequestParams[@"type"]=@"edit";
+    [self TWPerformRequestWithParams:tokRequestParams completionHandler:^(NSDictionary* responseData, NSError* error){
         //here should be verification
-        NSArray* listOfPages=[responseData[@"query"][@"pages"] allValues];
-        NSMutableString * token = [NSMutableString stringWithString:listOfPages[0][@"edittoken"]]; //get the token string itself
+        NSMutableString * token = responseData[@"tokens"][@"edittoken"];//edit token
         
         //request for the review itself
         NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
