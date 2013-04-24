@@ -20,6 +20,7 @@
 -(id) initForUser:(TWUser*) linkedUser;
 -(void)TWPerformRequestWithParams:(NSDictionary *)params completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
 -(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSString *, NSError *))completionBlock;
+-(void)TWLoginRequestWithPassword:(NSString*) passw isMainThreadBlocked:(BOOL)isBlocked completionHandler:(void (^)(NSString *, NSError *))completionBlock;
 -(void)TWLogoutRequest:(void (^)(NSDictionary *, NSError *))completionBlock;
 -(void)TWEditRequestWithTitle:(NSString*)title andText:(NSString*)text completionHandler:(void (^)(BOOL, NSError *))completionBlock;
 -(void)TWTranslatedMessagesListRequestForLanguage:(NSString*)lang Project:(NSString*)proj Limitfor:(NSInteger)limit OffsetToStart:(NSInteger)offset completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
@@ -36,4 +37,5 @@
 -(NSDictionary *)TWEditRequest:(NSDictionary *)params;
 
 @property(nonatomic, copy)TWUser* user;
+@property(nonatomic)dispatch_queue_t queue;
 @end

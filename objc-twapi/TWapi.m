@@ -20,6 +20,7 @@
     self = [super init];
     if (self) {
         _user  = linkedUser;
+        _queue=dispatch_queue_create("com.api.apiqueue", NULL);
         return self;
     }
     return nil;
@@ -34,10 +35,16 @@
 //*********************************************************************************
 -(void)TWPerformRequestWithParams:(NSDictionary *)params completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
 {
+    [self TWPerformRequestWithParams:params isMainThreadBlocked:NO completionHandler:completionBlock];
+}
+
+-(void)TWPerformRequestWithParams:(NSDictionary *)params isMainThreadBlocked:(BOOL)isBlocked completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
+{
     NSString *post = @"";
     NSMutableDictionary *requestParams = [NSMutableDictionary alloc];
     requestParams = [requestParams initWithDictionary:params];
     [requestParams setObject:@"json" forKey:@"format"];
+    dispatch_queue_t used_q=isBlocked ? _queue : dispatch_get_main_queue();
     
     //build URL line with query parameters - taken from requestParams dictionary.
     for( NSString *aKey in requestParams )
@@ -71,7 +78,10 @@
         // If there was an error getting the data
         if (error)
         {
-            dispatch_async(dispatch_get_main_queue(), ^(void) {
+            /*dispatch_async(dispatch_get_main_queue(), ^(void) {
+                completionBlock(nil, error);
+            });*/
+            dispatch_async(used_q, ^(void) {
                 completionBlock(nil, error);
             });
             return;
@@ -84,14 +94,14 @@
         // If there was an error decoding the JSON
         if (jsonError)
         {
-            dispatch_async(dispatch_get_main_queue(), ^(void) {
+            dispatch_async(used_q, ^(void) {
                 NSLog(@"JSON error");
             });
             return;
         }
         
         //call completion handler
-        dispatch_async(dispatch_get_main_queue(), ^(void) {
+        dispatch_async(used_q, ^(void) {
             completionBlock(responseDict, nil);
         });
     }];
@@ -113,15 +123,21 @@
 // 2)validate this token - login approval
 //*********************************************************************************
 
--(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSString *, NSError *))completionBlock 
+-(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSString *, NSError *))completionBlock
+{
+    [self TWLoginRequestWithPassword:passw isMainThreadBlocked:NO completionHandler:completionBlock];
+}
+
+-(void)TWLoginRequestWithPassword:(NSString*) passw isMainThreadBlocked:(BOOL)isBlocked completionHandler:(void (^)(NSString *, NSError *))completionBlock
 {
     NSMutableDictionary *requestParams = [[NSMutableDictionary alloc] init];
     //add the login parameters
     requestParams[@"lgname"]=_user.userName;
     requestParams[@"lgpassword"]=passw;
     requestParams[@"action"]=@"login";
+    dispatch_queue_t used_q=isBlocked ? _queue : dispatch_get_main_queue();
     
-    [self TWPerformRequestWithParams:requestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+    [self TWPerformRequestWithParams:requestParams isMainThreadBlocked:isBlocked completionHandler:^(NSDictionary* responseData, NSError* error){
         if(!error){
             NSDictionary* lgid = responseData[@"login"];
             NSString *result = [[NSString alloc] initWithFormat:@"%@",[lgid valueForKey:@"result"]];
@@ -129,7 +145,7 @@
             if ([result isEqualToString:@"NeedToken"])  //now we have a first response, we need to make a second request with a 'token'
             {
                 [requestParams setObject:[lgid valueForKey:@"token"] forKey:@"lgtoken"]; //add the token parameter
-                [self TWPerformRequestWithParams:requestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+                [self TWPerformRequestWithParams:requestParams isMainThreadBlocked:isBlocked completionHandler:^(NSDictionary* responseData, NSError* error){
                     if(!error){
                         NSDictionary* lgid = responseData[@"login"];
                         NSString* result = lgid[@"result"];
@@ -138,14 +154,14 @@
                             _user.isLoggedin = YES;
                             _user.userId = [(NSNumber*)lgid[@"lguserid"] stringValue];
                         }
-                        //call completion handler
-                        dispatch_async(dispatch_get_main_queue(), ^(void) {
+                        //call completion handler after success
+                        dispatch_async(used_q, ^(void) {
                             completionBlock(result, error);
                         });
                     }
                     else{
                         //call completion handler with error
-                        dispatch_async(dispatch_get_main_queue(), ^(void) {
+                        dispatch_async(used_q, ^(void) {
                             completionBlock(nil, error);
                         });
                     }
@@ -155,7 +171,7 @@
         else
         {
             //call completion handler with error
-            dispatch_async(dispatch_get_main_queue(), ^(void) {
+            dispatch_async(used_q, ^(void) {
                 completionBlock(nil, error);
             });
         }
