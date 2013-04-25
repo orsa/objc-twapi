@@ -96,6 +96,7 @@
         {
             dispatch_async(used_q, ^(void) {
                 NSLog(@"JSON error");
+                completionBlock(nil, error);
             });
             return;
         }
