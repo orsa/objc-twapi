@@ -266,7 +266,7 @@
     requestParams[@"action"]=@"translationaids";
     requestParams[@"title"]=title;
     requestParams[@"group"]=proj;
-    requestParams[@"prop"]=@"mt|ttmserver";
+    requestParams[@"prop"]=@"mt|ttmserver|documentation";
     
     [self TWPerformRequestWithParams:requestParams completionHandler:completionBlock];
     
