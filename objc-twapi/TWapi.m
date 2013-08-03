@@ -206,7 +206,7 @@
 //*********************************************************************************
 //Edit Request - this method handles edits, e.g translasions of messages.
 //*********************************************************************************
--(void)TWEditRequestWithTitle:(NSString*)title andText:(NSString*)text completionHandler:(void (^)(BOOL, NSError *))completionBlock
+-(void)TWEditRequestWithTitle:(NSString*)title andText:(NSString*)text completionHandler:(void (^)(NSError *, NSDictionary*))completionBlock
 {
     //request for a token
     NSMutableDictionary *tokRequestParams = [NSMutableDictionary alloc];
@@ -214,6 +214,13 @@
     tokRequestParams[@"action"]=@"tokens";
     tokRequestParams[@"type"]=@"edit";
     [self TWPerformRequestWithParams:tokRequestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+        if(error){
+            dispatch_async(dispatch_get_main_queue(), ^(void) {
+                completionBlock(error, responseData);
+            });
+            return;
+        }
+        
         //here should be verification
         NSMutableString * token = responseData[@"tokens"][@"edittoken"];//edit token
         
@@ -228,7 +235,7 @@
         [self TWPerformRequestWithParams:requestParams completionHandler:^(NSDictionary* responseData, NSError* error){
             //call the handler
             dispatch_async(dispatch_get_main_queue(), ^(void) {
-                completionBlock((!responseData[@"error"] && !responseData[@"warnings"]), error);
+                completionBlock(error, responseData);
             });
         }];
     }];
@@ -276,7 +283,7 @@
 //*********************************************************************************
 //Translation Review Request - this method handles message translasion acceptance.
 //*********************************************************************************
-- (void)TWTranslationReviewRequest:(NSString *)revision completionHandler:(void (^)(BOOL, NSError *))completionBlock
+- (void)TWTranslationReviewRequest:(NSString *)revision completionHandler:(void (^)(NSError *, NSDictionary*))completionBlock
 {
     //request for a token
     NSMutableDictionary *tokRequestParams = [NSMutableDictionary alloc];
@@ -284,6 +291,20 @@
     [tokRequestParams setObject:@"tokens" forKey:@"action"];
     [tokRequestParams setObject:@"translationreview" forKey:@"type"];
     [self TWPerformRequestWithParams:tokRequestParams completionHandler:^(NSDictionary* responseData, NSError* error){
+        if(error){
+            dispatch_async(dispatch_get_main_queue(), ^(void) {
+                completionBlock(error, responseData);
+            });
+            return;
+        }
+        
+        if(responseData[@"warnings"]){//no review permission
+            dispatch_async(dispatch_get_main_queue(), ^(void) {
+                completionBlock(error, responseData);
+            });
+            return;
+        }
+        
         //here should be verification
         NSMutableString * token = [[NSMutableString alloc] initWithFormat:@"%@",[responseData[@"tokens"] valueForKey:@"translationreviewtoken"]]; //get the token string itself
         
@@ -298,7 +319,7 @@
             
             //call the handler
             dispatch_async(dispatch_get_main_queue(), ^(void) {
-                completionBlock((!responseData[@"error"] && !responseData[@"warnings"]), error);
+                completionBlock(error, responseData);
             });
         }];
     }];
