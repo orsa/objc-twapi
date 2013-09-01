@@ -51,6 +51,7 @@
     [self TWPerformRequestWithParams:params isMainThreadBlocked:NO completionHandler:completionBlock];
 }
 
+//isMainThreadBlocked=YES means that the main thread is blocked (for example by a loop that makes the thread sleep until the response arrives), because it has to know the response before it can continue
 -(void)TWPerformRequestWithParams:(NSDictionary *)params isMainThreadBlocked:(BOOL)isBlocked completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock
 {
     NSString *post = @"";
@@ -133,8 +134,8 @@
 
 //*********************************************************************************
 //Login Request - this method handles login request by two steps
-// 1)requests token
-// 2)validate this token - login approval
+// 1) requests token
+// 2) uses token for login approval
 //*********************************************************************************
 
 -(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSString *, NSError *))completionBlock
