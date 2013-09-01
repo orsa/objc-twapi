@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		641788EE17D386EC008D0D2E /* TWUser.m in Sources */ = {isa = PBXBuildFile; fileRef = 641788EC17D386EC008D0D2E /* TWUser.m */; };
 		646000F016890ED0000EEACB /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 646000EF16890ED0000EEACB /* Foundation.framework */; };
 		646000FF16890F2D000EEACB /* TWapi.m in Sources */ = {isa = PBXBuildFile; fileRef = 646000FE16890F2D000EEACB /* TWapi.m */; };
 /* End PBXBuildFile section */
@@ -24,6 +25,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		641788EC17D386EC008D0D2E /* TWUser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TWUser.m; sourceTree = "<group>"; };
+		641788ED17D386EC008D0D2E /* TWUser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TWUser.h; sourceTree = "<group>"; };
 		646000EC16890ECF000EEACB /* libobjc-twapi.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libobjc-twapi.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		646000EF16890ED0000EEACB /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		646000F316890ED0000EEACB /* objc-twapi-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "objc-twapi-Prefix.pch"; sourceTree = "<group>"; };
@@ -73,6 +76,8 @@
 			children = (
 				646000FD16890F2D000EEACB /* TWapi.h */,
 				646000FE16890F2D000EEACB /* TWapi.m */,
+				641788ED17D386EC008D0D2E /* TWUser.h */,
+				641788EC17D386EC008D0D2E /* TWUser.m */,
 				646000F216890ED0000EEACB /* Supporting Files */,
 			);
 			path = "objc-twapi";
@@ -138,6 +143,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				646000FF16890F2D000EEACB /* TWapi.m in Sources */,
+				641788EE17D386EC008D0D2E /* TWUser.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -234,6 +240,7 @@
 				646000FC16890ED0000EEACB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
