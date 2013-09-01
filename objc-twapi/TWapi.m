@@ -2,8 +2,6 @@
 //  TWapi.m
 //  TWapi
 //
-//  Created by Or Sagi on 21/12/12 (end of the world).
-//
 //  Copyright 2013 Or Sagi, Tomer Tuchner
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");

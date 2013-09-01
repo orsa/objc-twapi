@@ -2,8 +2,6 @@
 //  TWapi.h
 //  TWapi
 //
-//  Created by Or Sagi on 21/12/12.
-//
 //  Copyright 2013 Or Sagi, Tomer Tuchner
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +15,7 @@
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
+//
 
 #import <Foundation/Foundation.h>
 #import "TWUser.h"
@@ -29,8 +28,8 @@
 
 @interface TWapi : NSObject
 
-@property(nonatomic, copy)TWUser* user;
-@property(nonatomic) dispatch_queue_t queue;
+@property(nonatomic, copy)TWUser* user; // the user object that contains the information about the user making requests to api
+@property(nonatomic) dispatch_queue_t queue; // the queue in which the api requests are being made
 
 //synchronous version methods
 -(NSMutableDictionary *)TWRequest:(NSDictionary *)params;
