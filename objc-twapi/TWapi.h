@@ -29,6 +29,13 @@
 
 @interface TWapi : NSObject
 
+@property(nonatomic, copy)TWUser* user;
+@property(nonatomic) dispatch_queue_t queue;
+
+//synchronous version methods
+-(NSMutableDictionary *)TWRequest:(NSDictionary *)params;
+-(NSMutableDictionary *)TWQueryRequest:(NSDictionary *)params;
+-(NSDictionary *)TWEditRequest:(NSDictionary *)params;
 -(id) initForUser:(TWUser*) linkedUser;
 -(void)TWPerformRequestWithParams:(NSDictionary *)params completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
 -(void)TWLoginRequestWithPassword:(NSString*) passw completionHandler:(void (^)(NSString *, NSError *))completionBlock;
@@ -43,11 +50,4 @@
 -(void)TWQueryRequestAsync:(NSDictionary *)params completionHandler:(void (^)(NSDictionary *, NSError *))completionBlock;
 - (NSString*)TWUserIdRequestOfUserName:(NSString*)userName;
 
-//synchronous version methods
--(NSMutableDictionary *)TWRequest:(NSDictionary *)params;
--(NSMutableDictionary *)TWQueryRequest:(NSDictionary *)params;
--(NSDictionary *)TWEditRequest:(NSDictionary *)params;
-
-@property(nonatomic, copy)TWUser* user;
-@property(nonatomic)dispatch_queue_t queue;
 @end
